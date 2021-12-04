@@ -63,8 +63,6 @@ impl Board {
 
 
     fn draw_num(&mut self, num: i32) {
-        assert!(!self.finished);
-        //println!("Board: \n{:?}, sums: \n{:?}, finised");
 
         // Should learn itertool to do product
         for y in 0..BOARD_SIZE {
@@ -101,6 +99,77 @@ fn parse(file: &str) -> (Vec<i32>, Vec<Board>) {
 }
 
 
+fn part2_2(nums: Vec<i32>, mut boards: Vec<Board>) {
+    // I did not realise you should not count diagonals, so here I purposfully shut that down
+    for board in boards.iter_mut() {
+        board.sums[2*BOARD_SIZE] += 1;
+        board.sums[2*BOARD_SIZE + 1] += 1;
+    }
+
+    let mut loser_unmarked = None;
+    for &num in nums.iter() {
+
+        {
+            for board in boards.iter_mut() {
+                board.draw_num(num);
+            }
+        }
+
+        boards.retain(|board| {
+            !board.finished
+        });
+
+        // Maybe not the most pretty of ways
+        if boards.len() == 1 {
+            loser_unmarked = Some(boards[0].sum_unmarked);
+        }
+        else if boards.len() == 0 {
+            let score = (loser_unmarked.expect("Expected final loser") - num) * num;
+            println!("Final winner has score: {} with number {}", 
+                score, num);
+            break ;
+        }
+    }
+}
+
+
+fn part2(nums: Vec<i32>, mut boards: Vec<Board>) {
+    // I did not realise you should not count diagonals, so here I purposfully shut that down
+    for board in boards.iter_mut() {
+        board.sums[2*BOARD_SIZE] += 1;
+        board.sums[2*BOARD_SIZE + 1] += 1;
+    }
+
+    let mut loser_unmarked = None;
+    for &num in nums.iter() {
+
+        // So here we just borrow boards as mutable until the iterator goes out of scope?
+        let losers = boards.iter_mut()
+            .map(|x| {
+                x.draw_num(num);
+                x
+            })
+            .fold(vec![], |mut vec, board| {
+                if !board.finished {
+                    vec.push(board)
+                }
+                vec
+            });
+
+        // Maybe not the most pretty of ways
+        if losers.len() == 1 {
+            loser_unmarked = Some(losers[0].sum_unmarked);
+        }
+        else if losers.len() == 0 {
+            let score = (loser_unmarked.expect("Expected final loser") - num) * num;
+            println!("Final winner has score: {} with number {}", 
+                score, num);
+            break ;
+        }
+    }
+}
+
+
 fn part1(nums: Vec<i32>, mut boards: Vec<Board>) {
     // I did not realise you should not count diagonals, so here I purposfully shut that down
     for board in boards.iter_mut() {
@@ -109,7 +178,6 @@ fn part1(nums: Vec<i32>, mut boards: Vec<Board>) {
     }
 
     for &num in nums.iter() {
-
         // So here we just borrow boards as mutable until the iterator goes out of scope?
         let winner = boards.iter_mut()
             .map(|x| {
@@ -127,8 +195,10 @@ fn part1(nums: Vec<i32>, mut boards: Vec<Board>) {
     }
 }
 
-
+// Both part 2s work, but maybe 2_2 is nicer. At least faster
 fn main() {
     let (nums, boards) = parse("input.in");
-    part1(nums, boards);
+    //part1(nums, boards);
+    //part2(nums, boards);
+    part2_2(nums, boards);
 }
