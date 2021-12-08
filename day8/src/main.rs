@@ -2,20 +2,17 @@ use std::fs;
 
 
 struct Display {
-    input: [Vec<u8>; 10],
-    output: [Vec<u8>; 4],
+    input: [String; 10],
+    output: [String; 4],
 }
 
 
 impl Display {
     fn parse (line: &str) -> Display{
 
-        let mut patterns: Vec<Vec<Vec<u8>>> = line.split(" | ")
+        let mut patterns: Vec<Vec<String>> = line.split(" | ")
             .map(|half| half.split(' ')
-                .map(|pattern| pattern.as_bytes()
-                    .iter()
-                    .copied()
-                    .collect())
+                .map(|pattern| pattern.to_string())
                 .collect())
             .collect();
 
@@ -27,7 +24,6 @@ impl Display {
             disp.input[i] = input.pop().unwrap();
         }
 
-        
         for i in (0..4).rev() {
             disp.output[i] = output.pop().unwrap();
         }
