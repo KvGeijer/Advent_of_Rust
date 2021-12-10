@@ -2,12 +2,19 @@ const OPEN: [char; 4] = ['(', '{', '[', '<'];
 // const MAP: HashMap<char, char> = HashMap::from([ ('(', ')'), ('[', ']'), ('{', '}'), ('<', '>') ]);
 
 
-fn closes(opening: char, closing: char) -> bool {
-    [ ('(', ')'), ('[', ']'), ('{', '}'), ('<', '>') ].contains(&(opening, closing)) 
+fn closing(opening: char) -> char {
+    match opening {
+        '(' => ')',
+        '[' => ']', 
+        '{' => '}',
+        '<' => '>',
+        _   => panic!("invalid opening"),
+    }    
 }
 
 
-fn analyze(line: &str) -> (char, ()) {
+// Should return tuple of results instead to make real nice
+fn analyze(line: &str) -> (char, Vec<char>) { 
     let mut stack = vec![];
 
     for c in line.chars() {
@@ -15,15 +22,15 @@ fn analyze(line: &str) -> (char, ()) {
             stack.push(c);
         }
         else if let Some(opening) = stack.pop() {  // Closing block, pop from stack and check if it is correct or not
-            if !closes(opening, c) {
-                return (c, ());
+            if closing(opening) != c {
+                return (c, stack);
             }
         } else {    // More closing ones than opening ones
-            println!("What to do?");
+            panic!("What to do?");
         }
     }
 
-    ('.', ())
+    ('.', stack)
 }
 
 
@@ -42,10 +49,33 @@ fn part1(lines: &Vec<&str>) {
 }
 
 
+fn part2(lines: &Vec<&str>) {
+    let mut scores: Vec<u64> = lines.iter()
+        .map(|line| analyze(line))
+        .filter(|(c, _)| c == &'.')
+        .map(|(_, stack)| stack.iter()
+            .rev()
+            .fold(0u64, |sum, opening| 5*sum + 
+                match opening {
+                    '(' => 1,
+                    '[' => 2,
+                    '{' => 3,
+                    '<' => 4,
+                    _   => panic!("INVALID OPENING")
+            }))
+        .collect();
+    
+    scores.sort();
+    let middle_score = scores[scores.len()/2];
+    
+    println!("Middle autocomplete score {}", middle_score);
+}
+
+
 fn main() {
     let string = std::fs::read_to_string("input.in").unwrap();
     let lines: Vec<&str> = string.split('\n').collect();
     
     part1(&lines);
-
+    part2(&lines);
 }
