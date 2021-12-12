@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 
 struct Graph {
@@ -22,38 +22,10 @@ struct Edge {
 }
 
 
-impl Node {
-    fn other(&self, edge: &Edge) -> usize {
-        if edge.u == self.ind {
-            edge.v
-        }
-        else {
-            edge.u
-        }
-    }
-
-
-    fn find_paths(&self, visited: &mut HashSet<usize>, graph: &Graph) -> u32 {
-        if self.ind == graph.t {
-            return 1;
-        }
-
-        let mut paths = 0;
-        if !self.large {
-            visited.insert(self.ind);
-        }
-
-        for edge_ind in self.edges.iter() {
-            let other: &Node = &graph.nodes[self.other(&graph.edges[*edge_ind])];
-
-            if !visited.contains(&other.ind) {   // Could do as filter and map to find nodes
-                paths += other.find_paths(visited, graph);
-            }
-        }
-
-        visited.remove(&self.ind);
-        paths
-    }
+struct Visited {
+    map: HashMap<usize, u32>,
+    treshold: u32,
+    double: bool,
 }
 
 
@@ -108,9 +80,89 @@ fn parse(path: &str) -> Graph {
 }
 
 
+impl Visited {
+    fn available(&self, node_ind: &usize) -> bool {
+        !self.double ||
+            !self.map.contains_key(node_ind) ||
+            self.map.get(node_ind).unwrap() < &self.treshold
+    }
+
+
+    fn enter(&mut self, node_ind: &usize) {
+    
+        if !self.map.contains_key(node_ind) {
+            self.map.insert(*node_ind, 1);
+        }
+        else {
+            let prev = self.map.get_mut(node_ind).unwrap();
+
+            if *prev == self.treshold {
+                self.double = true;
+            }
+
+            *prev += 1;
+        }
+    }
+
+
+    fn exit(&mut self, node_ind: &usize) {
+        assert!(self.map.contains_key(node_ind));
+        assert!(self.map.get(node_ind).unwrap() > &0);
+        
+        let prev = self.map.get_mut(node_ind).unwrap();
+
+        if *prev > self.treshold {
+            self.double = false;
+        }
+
+        //assert!(*prev <= self.treshold);
+        *prev -= 1;
+    }
+}
+
+
+impl Node {
+    fn other(&self, edge: &Edge) -> usize {
+        if edge.u == self.ind {
+            edge.v
+        }
+        else {
+            edge.u
+        }
+    }
+
+
+    fn find_paths(&self, visited: &mut Visited, graph: &Graph) -> u32 {
+        if self.ind == graph.t {
+            return 1;
+        }
+
+        let mut paths = 0;
+        if !self.large {
+            visited.enter(&self.ind);
+        }
+
+        for edge_ind in self.edges.iter() {
+            let other: &Node = &graph.nodes[self.other(&graph.edges[*edge_ind])];
+
+            if other.ind != graph.s && (other.large || visited.available(&other.ind)) {
+                paths += other.find_paths(visited, graph);
+            }
+        }
+
+        if !self.large {
+            visited.exit(&self.ind);
+        }
+        
+        paths
+    }
+}
+
+
 fn part1(graph: &Graph) {
     let start = &graph.nodes[graph.s];
-    let mut visited: HashSet<usize> = HashSet::new();
+    
+    let mut visited = Visited {map: HashMap::new(), treshold: 1, double: true};
 
     let nbr_paths = start.find_paths(&mut visited, graph);
 
@@ -118,7 +170,19 @@ fn part1(graph: &Graph) {
 }
 
 
+fn part2(graph: &Graph) {
+    let start = &graph.nodes[graph.s];
+    
+    let mut visited = Visited {map: HashMap::new(), treshold: 1, double: false};
+
+    let nbr_paths = start.find_paths(&mut visited, graph);
+
+    println!("Number of paths found (allowing double visits): {}", nbr_paths);
+}
+
+
 fn main() {
     let graph = parse("input.in");
     part1(&graph);
+    part2(&graph);
 }
