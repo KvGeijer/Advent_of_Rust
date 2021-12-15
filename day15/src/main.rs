@@ -1,5 +1,6 @@
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
+use itertools::Itertools;
 
 
 #[derive(Copy, Clone, Eq, PartialEq)]
@@ -59,7 +60,51 @@ fn parse(path: &str) -> Vec<Vec<u32>> {
 }
 
 
+fn upscale(graph: Vec<Vec<u32>>) -> Vec<Vec<u32>> {
+    let rows = graph.len();
+    let cols = graph[0].len();
+
+    let mut upscaled = vec![vec![0; cols*5]; rows*5];
+
+    // Really did not want a double for loop
+    for (row, col, val) in graph.iter()
+        .enumerate()
+        .map(|(i, row)| row.iter()
+            .enumerate()
+            .map(move |(j, &val)| (i, j, val))
+        ).flatten() {
+        
+        for (row_shift, col_shift) in Itertools::cartesian_product(0..5, 0..5) {
+            let new_row = row + rows*row_shift;
+            let new_col = col + cols*col_shift;
+            let new_val = ((val + row_shift as u32 + col_shift as u32 - 1) % 9) + 1;
+
+            upscaled[new_row][new_col] = new_val;
+        }
+        
+    }
+
+    upscaled
+}
+
+
+fn part2(graph: &Vec<Vec<u32>>) {
+    
+    let dist = dijkstras(graph);
+    println!("Shortest path to sink in upscaled map: {}", dist);
+
+}
+
+
 fn part1(graph: &Vec<Vec<u32>>) {
+    
+    let dist = dijkstras(graph);
+    println!("Shortest path to sink in small map: {}", dist);
+
+}
+
+
+fn dijkstras(graph: &Vec<Vec<u32>>) -> u32 {
     let rows = graph.len();
     let cols = graph[0].len();
 
@@ -85,15 +130,14 @@ fn part1(graph: &Vec<Vec<u32>>) {
 
     }
 
-    let dist = dists[rows-1][cols-1];
-    assert!(dist as usize <= 9*(rows + cols));
-
-    println!("Shortest path to sink: {}", dist);
-
+    dists[rows-1][cols-1]
 }
 
 
 fn main() {
     let graph = parse("input.in");
     part1(&graph);
+    
+    let upscaled = upscale(graph);
+    part2(&upscaled);
 }
