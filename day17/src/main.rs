@@ -16,7 +16,7 @@ fn parse(path: &str) -> (i32, i32, i32, i32) {
 fn trick_shot(ymin: i32, ymax: i32) -> i32 {
 
     let mut best = 0;
-    for yv in 1..1000 {    // Find a better stopping criteria
+    for yv in 1..ymin.abs() {    // Find a better stopping criteria
         let t = yv as f64 + 0.5;
         let i = (t + (t.powf(2.0) - (2*ymax) as f64).sqrt()).ceil() as i32;  //yi <= ymax
         let yi = i*yv - i*(i-1)/2;
@@ -92,7 +92,7 @@ fn part2(xmin: i32, xmax: i32, ymin: i32, ymax: i32) {
     // So here we loop over the velocities giving stationarity and check all possible y velocities possible
     for &vx in stat_vxs.iter().rev() {  // Could do several at the same time for efficiency
         
-        for vy in 1..1000 {    // Find a better stopping criteria
+        for vy in 1..=ymin.abs() {    // Find a better stopping criteria
             let t = vy as f64 + 0.5;
             let k = (t + (t.powf(2.0) - (2*ymax) as f64).sqrt()).ceil() as i32;  //yk <= ymax
             let yk = k*vy - k*(k-1)/2;

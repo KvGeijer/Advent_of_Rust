@@ -201,10 +201,8 @@ impl Add for Num {
 
         let mut changes = true;
         while changes {
-            while changes {
-                changes = false;
-                num.explosions(&mut changes);
-            }
+            changes = false;
+            num.explosions(&mut changes);
             num.splits(&mut changes, 1);    // This 1 instead of 0 cost me an hour :)
 
         }
