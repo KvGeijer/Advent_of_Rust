@@ -3,7 +3,7 @@ use std::ops::Add;
 
 
 
-#[derive(Debug)]
+#[derive(Clone)]
 enum Num {
     Literal(u32),
     Pair(Box<[Num; 2]>),
@@ -88,14 +88,12 @@ impl Num {
             let left: u32 = if let Num::Literal(nbr) = boxx[0] {
                 nbr
             } else { 
-                println!("{:?}", self);
                 panic!("Matching left!!"); 
             };
 
             let right: u32 = if let Num::Literal(nbr) = boxx[1] {
                 nbr
             } else { 
-                println!("{:?}", self);
                 panic!("Matching right!!"); 
             };
 
@@ -240,9 +238,27 @@ fn part1(mut numbers: Vec<Num>) {
 }
 
 
+fn part2(numbers: Vec<Num>) {
+    let mut best = 0;
+
+    for num in numbers.iter() {
+        for other in numbers.iter() {
+            let mag = (num.clone() + other.clone()).magnitude();
+            if mag > best {
+                best = mag;
+            }
+        }
+    }
+
+    println!("The highest posible magnitude from adding two numbers: {}", best);
+
+}
+
+
 fn main() {
     let numbers = parse("input.in");
 
-    part1(numbers);
+    part1(numbers.clone());
+    part2(numbers);
 
 }
