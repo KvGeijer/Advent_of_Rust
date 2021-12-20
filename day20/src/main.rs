@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 use itertools::Itertools;
 use std::time::Instant;
 
@@ -45,43 +45,41 @@ fn parse(path: &str) -> (HashSet<(i32, i32)>, Vec<bool>, bool) {
         .collect();
 
     let alternating = enh.as_bytes()[0] == '#' as u8 && enh.as_bytes()[enh.len()-1] == '.' as u8;
-    assert!(alternating);
 
     (points, enhance, alternating)
         
 }
 
 
-fn get_bin(&(i, j): &(i32, i32), points: &HashSet<(i32, i32)>, bg: bool) -> usize {
-    let mut bin = 0;
-    for (off_i, off_j) in Itertools::cartesian_product(-1..=1, -1..=1) {
-        let ind = (i + off_i, j + off_j);
-        bin = (bin << 1) + (bg != points.contains(&ind)) as usize;  //ERROR: Make sure this is correct
-    }
-    bin
-}
-
-
-fn enhance(rules: &Vec<bool>, points: HashSet<(i32, i32)>, bg: bool, alt: bool) -> HashSet<(i32, i32)> {
+fn enhance(rules: &Vec<bool>, mut points: HashSet<(i32, i32)>, bg: bool, alt: bool) -> HashSet<(i32, i32)> {
     // bg is wether the blackground is light or dark
     // alt is wether bg changes each iteration. If true then new_points should contains every active node same as bg
 
-    // First find a set of "active nodes". These are nodes which have any 8-neighbors in points,
-    // meaning they can have the opposite color of the next background.
-
-    let mut active: HashSet<(i32, i32)> = points.iter()
-        .cartesian_product(Itertools::cartesian_product(-1..=1, -1..=1))
-        .map(|(&(i, j), (off_i, off_j))| (i + off_i, j + off_j))
-        .collect();
-
-    // Now find all points which will not have the same color as the background in the next iteration
     let next_bg = alt && !bg;
-    active.retain(|&ind| {      // This retaining does not seem that fast
-            let bin = get_bin(&ind, &points, bg);
-            rules[bin] != next_bg
-        });
-    
-    active
+
+    // The addition from neighboring nodes. Even if the background is light we add
+    // for dark ones. Then reverse in the end.
+    let mut counts: HashMap<(i32, i32), usize> = HashMap::new();
+    for (i, j) in points.drain() {
+        for (en, (off_i, off_j)) in Itertools::cartesian_product(-1..=1, -1..=1).enumerate() {
+            let ind = (i + off_i, j + off_j);
+
+            let count = counts.entry(ind).or_insert(0);
+            *count += if en != 0 {2 << (en - 1)} else { 1 };
+        }
+    }
+
+    counts.drain()
+        .filter_map(|(ind, count)| {
+            let bin = if bg { (2 << 8) - 1 - count } else { count };
+            
+            if rules[bin] != next_bg { 
+                Some (ind) 
+            } else { 
+                None 
+            }
+        })
+        .collect()
 }
 
 
