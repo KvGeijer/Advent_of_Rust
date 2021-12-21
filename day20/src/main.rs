@@ -1,9 +1,8 @@
-use std::collections::HashSet;
 use itertools::Itertools;
 use std::time::Instant;
 
 #[allow(dead_code)]
-fn print_points(points: &HashSet<(usize, usize)>) {
+fn print_points(points: &Vec<(usize, usize)>) {
     let xmin = points.iter().map(|&(_, x)| x).min().unwrap();
     let xmax = points.iter().map(|&(_, x)| x).max().unwrap();
     let ymin = points.iter().map(|&(y, _)| y).min().unwrap();
@@ -22,7 +21,7 @@ fn print_points(points: &HashSet<(usize, usize)>) {
 }
 
 
-fn parse(path: &str) -> (HashSet<(usize, usize)>, Vec<bool>, bool) {
+fn parse(path: &str) -> (Vec<(usize, usize)>, Vec<bool>, bool) {
     let input = std::fs::read_to_string(path).expect("expected valid file");
 
     let (enh, image) = input.split_once("\n\n").unwrap();
@@ -51,7 +50,7 @@ fn parse(path: &str) -> (HashSet<(usize, usize)>, Vec<bool>, bool) {
 }
 
 
-fn enhance(rules: &Vec<bool>, mut points: HashSet<(usize, usize)>, bg: bool, alt: bool, rows: usize, cols: usize) -> HashSet<(usize, usize)> {
+fn enhance(rules: &Vec<bool>, points: Vec<(usize, usize)>, bg: bool, alt: bool, rows: usize, cols: usize) -> Vec<(usize, usize)> {
     // bg is wether the blackground is light or dark
     // alt is wether bg changes each iteration. If true then new_points should contains every active node same as bg
 
@@ -59,7 +58,7 @@ fn enhance(rules: &Vec<bool>, mut points: HashSet<(usize, usize)>, bg: bool, alt
 
     // Counts have all indexes off by one. so old (0,0) -> (1, 1)
     let mut counts = vec![vec![0; 1 + 2 + rows]; 1 + 2 + cols];
-    for (i, j) in points.drain() {
+    for (i, j) in points.into_iter() {
         for (en, (off_i, off_j)) in Itertools::cartesian_product(0..=2, 0..=2).enumerate() {
             let (row, col) = (i + off_i, j + off_j);
 
@@ -86,7 +85,7 @@ fn enhance(rules: &Vec<bool>, mut points: HashSet<(usize, usize)>, bg: bool, alt
 }
 
 
-fn solve(mut points: HashSet<(usize, usize)>, enhancement: &Vec<bool>, alt: bool, it: usize) -> usize {
+fn solve(mut points: Vec<(usize, usize)>, enhancement: &Vec<bool>, alt: bool, it: usize) -> usize {
     // By calculating these here we don't have to do it every iteration.
     let rows = points.iter().map(|&(y, _)| y).max().unwrap();
     let cols = points.iter().map(|&(_, x)| x).max().unwrap();
@@ -100,14 +99,14 @@ fn solve(mut points: HashSet<(usize, usize)>, enhancement: &Vec<bool>, alt: bool
 
 
 
-fn part1(points: HashSet<(usize, usize)>, enhancement: &Vec<bool>, alt: bool) {
+fn part1(points: Vec<(usize, usize)>, enhancement: &Vec<bool>, alt: bool) {
 
     let size = solve(points, enhancement, alt, 2);
     println!("The size after 2 enhancements: {}", size);
 }
 
 
-fn part2(points: HashSet<(usize, usize)>, enhancement: &Vec<bool>, alt: bool) {
+fn part2(points: Vec<(usize, usize)>, enhancement: &Vec<bool>, alt: bool) {
 
     let size = solve(points, enhancement, alt, 50);
     println!("The size after 50 enhancements: {}", size);
