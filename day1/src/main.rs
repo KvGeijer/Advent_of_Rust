@@ -1,4 +1,6 @@
 use std::io::Read;
+use std::time::Instant;
+
 
 fn get_input() -> String {    
     let mut file = std::fs::File::open("input1.in").unwrap();
@@ -77,6 +79,11 @@ fn part1_1() {
 
 
 fn main() {
+    let start = Instant::now();
+
     part1_2();
     part2();
+
+    let duration = start.elapsed();
+    println!("Time: {:?}", duration);
 }

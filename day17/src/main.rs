@@ -1,5 +1,6 @@
 use regex::Regex;
 use std::collections::{HashSet, BTreeSet};
+use std::time::Instant;
 
 
 fn parse(path: &str) -> (i32, i32, i32, i32) {
@@ -112,9 +113,13 @@ fn part2(xmin: i32, xmax: i32, ymin: i32, ymax: i32) {
 
 
 fn main() {
+    let start = Instant::now();
+
     let (xmin, xmax, ymin, ymax) = parse("input.in");
 
     part1(ymin, ymax);
     part2(xmin, xmax, ymin, ymax);
 
+    let duration = start.elapsed();
+    println!("Time: {:?}", duration);
 }

@@ -115,7 +115,6 @@ fn part2(points: HashSet<(usize, usize)>, enhancement: &Vec<bool>, alt: bool) {
 
 
 fn main() {
-    // Sadly today was slowest by far. The solution is really nice, but slow
 
     let start = Instant::now();
 

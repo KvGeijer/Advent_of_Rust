@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use itertools::Itertools;
+use std::time::Instant;
 
 
 #[derive(Copy, Clone, Eq, PartialEq)]
@@ -135,9 +136,14 @@ fn dijkstras(graph: &Vec<Vec<u32>>) -> u32 {
 
 
 fn main() {
+    let start = Instant::now();
+
     let graph = parse("input.in");
     part1(&graph);
     
     let upscaled = upscale(graph);
     part2(&upscaled);
+
+    let duration = start.elapsed();
+    println!("Time: {:?}", duration);
 }

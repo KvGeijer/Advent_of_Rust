@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use std::time::Instant;
 
 
 fn parse(path: &str) -> Vec<Vec<u32>> {
@@ -104,7 +105,12 @@ fn part2(board: &Vec<Vec<u32>>) {
 
 
 fn main() {
+    let start = Instant::now();
+
     let grid = parse("input.in");
     part1(&grid);
     part2(&grid);
+
+    let duration = start.elapsed();
+    println!("Time: {:?}", duration);
 }

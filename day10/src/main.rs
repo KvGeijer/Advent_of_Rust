@@ -1,3 +1,6 @@
+use std::time::Instant;
+
+
 const OPEN: [char; 4] = ['(', '{', '[', '<'];
 // const MAP: HashMap<char, char> = HashMap::from([ ('(', ')'), ('[', ']'), ('{', '}'), ('<', '>') ]);
 
@@ -73,9 +76,14 @@ fn part2(lines: &Vec<&str>) {
 
 
 fn main() {
+    let start = Instant::now();
+
     let string = std::fs::read_to_string("input.in").unwrap();
     let lines: Vec<&str> = string.split('\n').collect();
     
     part1(&lines);
     part2(&lines);
+
+    let duration = start.elapsed();
+    println!("Time: {:?}", duration);
 }

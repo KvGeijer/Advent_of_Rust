@@ -1,6 +1,7 @@
 use std::io::{BufReader, BufRead};
 use std::fs::File;
 use regex::Regex;
+use std::time::Instant;
 
 
 struct Position {
@@ -76,6 +77,11 @@ fn part1() {
 
 
 fn main() {
+    let start = Instant::now();
+
     part1();
     part2();
+
+    let duration = start.elapsed();
+    println!("Time: {:?}", duration);
 }

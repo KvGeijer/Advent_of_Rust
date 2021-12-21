@@ -1,5 +1,6 @@
 use std::iter::Peekable;
 use std::ops::Add;
+use std::time::Instant;
 
 
 
@@ -254,9 +255,13 @@ fn part2(numbers: Vec<Num>) {
 
 
 fn main() {
+    let start = Instant::now();
+
     let numbers = parse("input.in");
 
     part1(numbers.clone());
     part2(numbers);
 
+    let duration = start.elapsed();
+    println!("Time: {:?}", duration);
 }

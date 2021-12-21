@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::time::Instant;
 
 
 struct Graph {
@@ -182,7 +183,12 @@ fn part2(graph: &Graph) {
 
 
 fn main() {
+    let start = Instant::now();
+
     let graph = parse("input.in");
     part1(&graph);
     part2(&graph);
+
+    let duration = start.elapsed();
+    println!("Time: {:?}", duration);
 }

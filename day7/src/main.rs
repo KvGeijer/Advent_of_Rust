@@ -1,4 +1,5 @@
 use std::fs;
+use std::time::Instant;
 
 fn pseudo_median<V: std::cmp::Ord + Copy>(vec: &Vec<V>) -> V {
     // Relies on the vector being sorted beforehand
@@ -61,9 +62,14 @@ fn part2(positions: &Vec<i32>) {
 }
 
 fn main() {
+    let start = Instant::now();
+
     let mut positions = parse_crabs("input.in");
     positions.sort();
 
     part1(&positions);
     part2(&positions);
+
+    let duration = start.elapsed();
+    println!("Time: {:?}", duration);
 }

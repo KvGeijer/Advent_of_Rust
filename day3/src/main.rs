@@ -1,4 +1,5 @@
 use std::fs;
+use std::time::Instant;
 
 
 fn parse() -> Vec<Vec<u32>> {
@@ -104,7 +105,12 @@ fn part1(byte_vec_vec: &Vec<Vec<u32>>) {
 
 
 fn main() {
+    let start = Instant::now();
+
     let byte_vec_vec = parse();
     part1(&byte_vec_vec);
     part2(byte_vec_vec);
+
+    let duration = start.elapsed();
+    println!("Time: {:?}", duration);
 }

@@ -1,4 +1,5 @@
 use std::fs;
+use std::time::Instant;
 
 
 const AGES:usize = 9;
@@ -53,7 +54,12 @@ fn part2(path: &str) {
 
 
 fn main() {
+    let start = Instant::now();
+
     let path = "input.in";
     part1(path);
     part2(path);
+
+    let duration = start.elapsed();
+    println!("Time: {:?}", duration);
 }

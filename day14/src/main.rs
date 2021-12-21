@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::time::Instant;
 
 
 fn parse(path: &str) -> (HashMap<[u8; 2], usize>, HashMap<[u8; 2], u8>, HashMap<u8, usize>){
@@ -70,6 +71,11 @@ fn simulate(mut counts: HashMap<[u8; 2], usize>, instr: &HashMap<[u8; 2], u8>, m
 
 
 fn main() {
+    let start = Instant::now();
+
     let (arr_counts, instr, char_counts) = parse("input.in");
     simulate(arr_counts, &instr, char_counts, 40);
+
+    let duration = start.elapsed();
+    println!("Time: {:?}", duration);
 }

@@ -1,5 +1,6 @@
 use std::fs;
 use std::cmp;
+use std::time::Instant;
 
 
 struct Line {
@@ -137,6 +138,11 @@ fn part1() {
 
 
 fn main() {
+    let start = Instant::now();
+
     part1();
     part2();
+
+    let duration = start.elapsed();
+    println!("Time: {:?}", duration);
 }

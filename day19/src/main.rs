@@ -1,5 +1,7 @@
 use std::collections::{HashMap, HashSet, VecDeque};
 use itertools::Itertools;
+use std::time::Instant;
+
 
 
 const THRESHOLD: usize = 11*(11 + 1)/2;
@@ -204,10 +206,15 @@ fn main() {
     // Idea: Have map of all relative distances between beacons for each
     // scanner. Then check for overlaps in the keys of those maps.
 
+    let start = Instant::now();
+
     let scanners = parse("input.in");
 
     let (beacons, scanners) = find_mappings(scanners);
     part1(beacons);
     part2(scanners);
+
+    let duration = start.elapsed();
+    println!("Time: {:?}", duration);
 
 }

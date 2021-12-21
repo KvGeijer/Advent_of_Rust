@@ -1,5 +1,6 @@
 use std::fs;
 //use itertools;
+use std::time::Instant;
 
 
 const BOARD_SIZE: usize = 5;
@@ -197,8 +198,13 @@ fn part1(nums: Vec<i32>, mut boards: Vec<Board>) {
 
 // Both part 2s work, but maybe 2_2 is nicer. At least faster
 fn main() {
+    let start = Instant::now();
+
     let (nums, boards) = parse("input.in");
     //part1(nums, boards);
     //part2(nums, boards);
     part2_2(nums, boards);
+
+    let duration = start.elapsed();
+    println!("Time: {:?}", duration);
 }

@@ -1,4 +1,5 @@
 use std::iter::Peekable;
+use std::time::Instant;
 
 
 // Would have been better to keep operator and to let it contain an enum of the types
@@ -203,9 +204,13 @@ fn part2(root: &Node) {
 
 // By padding they just mean all binaries have fixed size... So no problem
 fn main() {
+    let start = Instant::now();
+
     let root = parse("input.in");
 
     part1(&root);
     part2(&root);
 
+    let duration = start.elapsed();
+    println!("Time: {:?}", duration);
 }

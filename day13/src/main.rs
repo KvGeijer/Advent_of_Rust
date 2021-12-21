@@ -1,5 +1,6 @@
 use regex::Regex;
 use std::collections::HashSet;
+use std::time::Instant;
 
 
 fn parse(path: &str) -> (HashSet<(usize, usize)>, Vec<(usize, usize)>) {
@@ -99,8 +100,13 @@ fn part2(mut board: HashSet<(usize, usize)>, instr: &mut Vec<(usize, usize)>) {
 
 
 fn main() {
+    let start = Instant::now();
+
     let (mut board, mut instr) = parse("input.in");
 
     board = part1(board, &mut instr);
     part2(board, &mut instr);
+
+    let duration = start.elapsed();
+    println!("Time: {:?}", duration);
 }

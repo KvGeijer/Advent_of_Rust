@@ -1,5 +1,7 @@
 use ndarray::{Array2};
 use itertools::Itertools;
+use std::time::Instant;
+
 
 // Could not find a good way to initialize 2d array
 fn parse(path: &str) -> Array2<u32> {
@@ -70,6 +72,11 @@ fn part1_and_2(path: &str) {
 
 
 fn main() {
+    let start = Instant::now();
+
     let path = "input.in";
     part1_and_2(path);
+
+    let duration = start.elapsed();
+    println!("Time: {:?}", duration);
 }

@@ -1,5 +1,6 @@
 use std::fs;
 use std::collections::HashSet;
+use std::time::Instant;
 
 
 struct Display {
@@ -267,9 +268,14 @@ fn part2(displays: &Vec<Display>) {
 
 
 fn main() {
+    let start = Instant::now();
+
     let displays = parse("input.in");
     part1(&displays);
     part2(&displays);
+
+    let duration = start.elapsed();
+    println!("Time: {:?}", duration);
 }
 
 
