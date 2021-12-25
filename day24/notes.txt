@@ -1,0 +1,134 @@
+w = input()
+x = x * 0 = 0
+x = x + z = z
+x = x % 26 = z % 26
+z = z / 1 = z       // 1 or 26
+x = x + 14 = (z % 26) + 14     // 14 or other i32
+x = x == w = (z % 26) + 14 == w
+x = x == 0 = (z % 26) + 14 != w
+y = y * 0 = 0
+y = y + 25 = 25
+y = y * x = 25 * (z % 26) + 14 != w
+y = y + 1
+z = z * y = 25 * (x == 0 = (z % 26) + 14 != w) + 1
+y = y * 0 = 0
+y = y + w = w
+y = y + 8 = w + 8   // Or other unsigned
+y = y * x = y * (z % 26) + 14 != w
+z = z + y
+// Then it ~repeats
+
+// Using func from main we see differences in three lines:
+// 6: x += var where var is some i32
+// 5: z = z / var where var is 1 or 26
+// 16: y += var where var is some unsigned
+
+// So the loop can be described as ~Rust
+
+let mut z = 0;
+for w in inputs {
+    let in5 = <changing i32 at pos 5>;
+    let in6 = <1 or 26 at pos 6>;
+    let in16 = <changing u32 at pos 16>;
+
+    let x = (z % 26) + in6 != w
+    z = z / in5;    // Integer division! So z need not be 0
+
+    let y = if x {
+        26
+    } else {
+        1
+    };
+
+    z = z*y;
+
+    z += if x {
+        w + in16
+    } else {
+        0
+    };
+}
+
+// This can be further simplified: 
+
+let mut z = 0;
+for w in inputs {
+    let div = <1 or 26 at pos 6>;
+    let signed = <changing i32 at pos 5>;
+    let offset = <changing u32 at pos 16>;
+
+    z = if (z % 26) + signed != w {
+        (z / div) * 26 + w + offset
+    } else {
+        z / div
+    };
+}
+
+// The changing variabled, now named div, signed and offset
+// can then be placed in some vector.
+// Swap Vec<Instr> -> Vec<BlockInfo>
+// struct BlockInfo {div, signed, unsigned}
+
+// Now we look deper at the input:
+// When div = 1, signed in {14, 15, 13, 12}
+// and div = 26: signed in {-10, -3, -14, -6, -2, -9} 
+// giving if div == 1 {signed > 0} else {signed < 0}
+
+// Also have 1 < offset < 14. Can view z as a number
+// in base 26, z / 26 is like z >> 1, z % 26 is last digit
+// and z * 26 is z << 1. 
+
+// So if div == 1, 12 <= signed <= 15: 
+// So the if statement checks if the second digit in z
+// plus signed is equal to input. Since signed > 0 it
+// will never be equal. Instead we shift up once and 
+// pushes new last digit w + offset > 0.
+
+// If div == 26, signed < 0:
+// If the if statement is met we shift down once,
+// otherwise we replace last digit with w + offset.
+
+// So div == 1 shifts up z and adds new final digit,
+// div == 26 can shift down or replace final depending on if.
+
+// Looking at input we have both cases 7 times. 
+// As we must shift up and shift down an equal number of times
+// we know {(z % 26) + signed == w} must be true when div == 26.
+
+// Thus the code can be rewritten as such:
+
+let mut z = 0;
+for w in inputs {
+    let div = <1 or 26 at pos 6>;
+    let signed = <changing i32 at pos 5>;
+    let offset = <changing u32 at pos 16>;
+
+    z = if div == 26 {
+        assert!((z % 26) + signed == w);
+        // pop
+        z / 26     // z >> 1
+    } else {
+        // push
+        z * 26 + w + offset     // (z << 1) + w + offset  
+    };
+}
+assert!(z == 0);
+
+
+// New idea: z % 26 is just the last value pushed to z,
+// ie: w_old + offset_old. So when div == 26 we have:
+// make sure (w_old + offset_old) + signed_now = w_now
+
+// Final equation: w_old + offset_old + signed_now = w_now
+// <=>  w_old = w_now - (offset_old + signed_now)
+// This is at pops (div = 26)
+
+// Now all w's must occur in one such equation, as there are
+// as many pushes as pops and each creates one w.
+
+// So this restricts the possibilities of w quite a bit,
+// then just select the highest possible w_old at each step
+
+// The finding of each of these equations should be able to
+// do automatically and then we should also be able to
+// maximize them all automatically.
