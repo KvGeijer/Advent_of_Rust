@@ -8,14 +8,14 @@ use regex::Regex;
 const ROOMS_SIZE: usize = 4;
 const ROOMS: usize = 4;
 const CORRIDOR_SIZE: usize = 7;
+const SHIFT: usize = 5;
 
 
 #[derive(Debug, Clone)]
 struct State {
     id: usize,
-    corridor: [Option<usize>; 7],
-    rooms: [Vec<usize>; 4],
-    history: Vec<(State, u32)>,
+    corridor: [Option<u8>; 7],
+    rooms: [Vec<u8>; 4],
 }
 
 
@@ -67,7 +67,7 @@ impl PartialOrd for Node {
 }
 
 
-fn kind_to_char(kind: usize) -> char {
+fn kind_to_char(kind: u8) -> char {
     match kind {
         0 => 'A',
         1 => 'B',
@@ -78,7 +78,7 @@ fn kind_to_char(kind: usize) -> char {
 }
 
 
-fn to_digit(letter: &str) -> usize {
+fn to_digit(letter: &str) -> u8 {
     match letter {
         "A" => 0,
         "B" => 1,
@@ -89,13 +89,12 @@ fn to_digit(letter: &str) -> usize {
 }
 
 
-fn move_cost(kind: usize) -> u32 {
-    // Can be done with pow :)
-    10u32.pow(kind as u32)
+fn move_cost(kind: u8) -> u32 {
+    10u32.pow(kind as u32)  // TODO, replace with match?
 }
 
 
-fn adjacent_hallways(room: usize) -> (usize, usize) {
+fn adjacent_hallways(room: u8) -> (u8, u8) {
     // The two hallway positions adjacent to room exit. One is really enough, but this is kinda nice
     (room + 1, room + 2)
 }
@@ -148,21 +147,21 @@ impl std::fmt::Display for State {
 
 
 impl State {
-    fn compute_id(rooms: &[Vec<usize>; 4], corridor: &[Option<usize>; 7]) -> usize {
+    fn compute_id(rooms: &[Vec<u8>; 4], corridor: &[Option<u8>; 7]) -> usize {
         let mut id = 0;
         for val in corridor.iter() {
-            id *= 10;   // Should be able to change to 5 or two bit shifts for efficiency
+            id *= SHIFT;   // TODO: Should be able to change to 5 or two bit shifts for efficiency
             if let Some(kind) = val {
-                id += kind + 1; // +1 needed so 0 is not the same as empty
+                id += *kind as usize + 1; // +1 needed so 0 is not the same as empty
             }
         }
 
         
         for room in rooms.iter() {
             for i in (0..ROOMS_SIZE).rev() {
-                id *= 10;
+                id *= SHIFT;
                 if let Some(kind) = room.get(i) {
-                    id += kind + 1;
+                    id += *kind as usize + 1;
                 }
             }
         }
@@ -171,14 +170,14 @@ impl State {
     }
 
 
-    fn mandatory_from_room(&mut self, room: usize) -> Option<u32> {
-        if self.rooms[room].is_empty() {
+    fn mandatory_from_room(&mut self, room: u8) -> Option<u32> {
+        if self.rooms[room as usize].is_empty() {
             return None;
         }
         
-        let kind = *self.rooms[room].last().unwrap();
+        let kind = *self.rooms[room as usize].last().unwrap();
 
-        if  !self.rooms[kind].is_empty() {
+        if  !self.rooms[kind as usize].is_empty() {
             // If still shit in the room we want to go to we can't do anything.
             return None;
         }
@@ -194,17 +193,15 @@ impl State {
             start..=end
         };
 
-        let possible = iter.all(|corr| self.corridor[corr].is_none());
+        let possible = iter.all(|corr| self.corridor[corr as usize].is_none());
         if possible {
-            //ERROR: Assumes no-one starts in their respective room furthest down!
-            //ERROR: This is not added to total, can phase through things (fixed with =?)
 
-            // Don't replace it, just remove (Causes trouble for counting final steps)
-            let steps = (ROOMS_SIZE - self.rooms[room].len() + 1) + 2*(room as i32 - kind as i32).abs() as usize;
+            // Don't replace it, just remove (Causes trouble for counting final steps) TODO
+            let steps = (ROOMS_SIZE - self.rooms[room as usize].len() + 1) + 2*(room as i32 - kind as i32).abs() as usize;
 
-            let old_pos = (ROOMS - (room + 1))*ROOMS_SIZE + (self.rooms[room].len() - 1);
-            self.id -= (kind + 1) * 10usize.pow(old_pos as u32);
-            self.rooms[room].pop();
+            let old_pos = (ROOMS - (room as usize + 1))*ROOMS_SIZE + (self.rooms[room as usize].len() - 1);
+            self.id -= (kind as usize + 1) * SHIFT.pow(old_pos as u32);
+            self.rooms[room as usize].pop();
 
             assert!(self.id == State::compute_id(&self.rooms, &self.corridor));
 
@@ -217,12 +214,12 @@ impl State {
     }
 
 
-    fn mandatory_to_room(&mut self, kind: usize) -> Option<u32> {
+    fn mandatory_to_room(&mut self, kind: u8) -> Option<u32> {
         // This function is to show how good I can be at writing ugly code when I feel like it :)
 
         // Corridor to room seems to give too high cost!
 
-        if !self.rooms[kind].is_empty() {
+        if !self.rooms[kind as usize].is_empty() {
             return None;
         }
 
@@ -235,20 +232,20 @@ impl State {
         loop {
             moves += 1;
 
-            if Some(kind) == self.corridor[lower_corr] {
-                // Move it to the room and continue! ERROR: Not precise
+            if Some(kind) == self.corridor[lower_corr as usize] {
+                // Move it to the room and continue!
 
                 cost += move_cost(kind) * (moves*2 - 1);
                 if lower_corr == 0 {cost -= move_cost(kind)};
 
                 // Update the id
-                let pos = ROOMS*ROOMS_SIZE + CORRIDOR_SIZE - (lower_corr + 1);
-                self.id -= (kind + 1) * 10usize.pow(pos as u32);
+                let pos = ROOMS*ROOMS_SIZE + CORRIDOR_SIZE - (lower_corr + 1) as usize;
+                self.id -= (kind + 1) as usize * SHIFT.pow(pos as u32);
 
                 // Actually remove the element as well
-                self.corridor[lower_corr] = None;
+                self.corridor[lower_corr as usize] = None;
 
-            } else if self.corridor[lower_corr].is_some() {
+            } else if self.corridor[lower_corr as usize].is_some() {
                 break; // Blocked with the wrong kind
             }
 
@@ -257,19 +254,19 @@ impl State {
                 // There is a room to check
                 let room = lower_corr - 2;
                 loop {
-                    if self.rooms[room].last() == Some(&kind) {
+                    if self.rooms[room as usize].last() == Some(&kind) {
                         // Move it!
                         // Move roo,m to room TODO. Check if next one too, and then possibly move that one
                         
-                        let steps = 1 + moves*2 + (ROOMS_SIZE - self.rooms[room].len()) as u32; 
+                        let steps = 1 + moves*2 + (ROOMS_SIZE - self.rooms[room as usize].len()) as u32; 
                         cost += move_cost(kind) * steps;
 
                         // Update the id
-                        let old_pos = (ROOMS - (room + 1))*ROOMS_SIZE + (self.rooms[room].len() - 1);
-                        self.id -= (kind + 1) * 10usize.pow(old_pos as u32);
+                        let old_pos = (ROOMS - (room + 1) as usize)*ROOMS_SIZE + (self.rooms[room as usize].len() - 1);
+                        self.id -= (kind + 1) as usize * SHIFT.pow(old_pos as u32);
 
                         // Remove the number
-                        self.rooms[room].pop();
+                        self.rooms[room as usize].pop();
                     }
                     else {
                         break; //Wrong kind in the room
@@ -287,44 +284,44 @@ impl State {
 
         // Now repeat for going up the corridor (I know, horrendous :))
         moves = 0;
-        while upper_corr < CORRIDOR_SIZE {
+        while upper_corr < CORRIDOR_SIZE as u8 {
             moves += 1;
 
-            if Some(kind) == self.corridor[upper_corr] {
-                // Move it to the room and continue! ERROR: Not precise
+            if Some(kind) == self.corridor[upper_corr as usize] {
+                // Move it to the room and continue!
 
                 cost += move_cost(kind) * (moves*2 - 1);
-                if upper_corr == CORRIDOR_SIZE - 1 {cost -= move_cost(kind)};
+                if upper_corr == CORRIDOR_SIZE as u8 - 1 {cost -= move_cost(kind)};
 
                 // Update the id
-                let pos = ROOMS*ROOMS_SIZE + CORRIDOR_SIZE - (upper_corr + 1);
-                self.id -= (kind + 1) * 10usize.pow(pos as u32);
+                let pos = ROOMS*ROOMS_SIZE + CORRIDOR_SIZE - (upper_corr + 1) as usize;
+                self.id -= (kind + 1) as usize * SHIFT.pow(pos as u32);
 
                 // Actually remove the element as well
-                self.corridor[upper_corr] = None;
+                self.corridor[upper_corr as usize] = None;
 
-            } else if self.corridor[upper_corr].is_some() {
+            } else if self.corridor[upper_corr as usize].is_some() {
                 break; // Blocked with the wrong kind
             }
 
             // Nothing blocking the corridor. Check the room and continue
-            if upper_corr < CORRIDOR_SIZE - 2 {
+            if (upper_corr as usize) < CORRIDOR_SIZE - 2 {
                 // There is a room to check
                 let room = upper_corr - 1;
                 loop {
-                    if self.rooms[room].last() == Some(&kind) {
+                    if self.rooms[room as usize].last() == Some(&kind) {
                         // Move it!
                         // Move roo,m to room TODO. Check if next one too, and then possibly move that one
                         
-                        let steps = 1 + moves*2 + (ROOMS_SIZE - self.rooms[room].len()) as u32; 
+                        let steps = 1 + moves*2 + (ROOMS_SIZE - self.rooms[room as usize].len()) as u32; 
                         cost += move_cost(kind) * steps;
 
                         // Update the id
-                        let old_pos = (ROOMS - (room + 1))*ROOMS_SIZE + (self.rooms[room].len() - 1);
-                        self.id -= (kind + 1) * 10usize.pow(old_pos as u32);
+                        let old_pos = (ROOMS - (room + 1) as usize)*ROOMS_SIZE + (self.rooms[room as usize].len() - 1);
+                        self.id -= (kind as usize + 1) * SHIFT.pow(old_pos as u32);
 
                         // Remove the number
-                        self.rooms[room].pop();
+                        self.rooms[room as usize].pop();
                     }
                     else {
                         break; //Wrong kind in the room
@@ -344,11 +341,10 @@ impl State {
     }
 
 
-    fn mandatory_moves(mut self, room: usize, mut cost: u32) -> (State, u32) {
+    fn mandatory_moves(mut self, room: u8, mut cost: u32) -> (State, u32) {
         // Have moved thing from room. Can we move things from the room to their correct places?
-        // ERROR: If one in the hallway now can move to their correct room, also do that! Or another room.
 
-        // This should really just borrow the self as muatable...
+        // This should really just borrow the self as mutable...
 
         // Three types of mandatory moves:
         // - From specific room
@@ -369,7 +365,7 @@ impl State {
 
         while changes {
             changes = false;
-            for to_room in 0..ROOMS {
+            for to_room in 0..ROOMS as u8 {
                 // Check if we can move any thing to it
                 if let Some(extra_cost) = self.mandatory_to_room(to_room) {
                     cost += extra_cost;
@@ -383,21 +379,21 @@ impl State {
     }
 
 
-    fn do_move(mut self, room: usize, corr: usize) -> (State, u32) {
+    fn do_move(mut self, room: u8, corr: u8) -> (State, u32) {
         // TODO: Multiply cost with number of steps!
 
         // Can earlier chack if the move has been done before. OPT
 
-        let moving = *self.rooms[room].last().unwrap();
+        let moving = *self.rooms[room as usize].last().unwrap();
 
 
-        let (lower, upper) = adjacent_hallways(room);   //ERROR; Tired
-        let mut steps = (ROOMS_SIZE - self.rooms[room].len()) + if corr >= upper {
-            (1 + corr - upper) * 2
+        let (lower, upper) = adjacent_hallways(room);
+        let mut steps = (ROOMS_SIZE - self.rooms[room as usize].len()) + if corr >= upper {
+            (1 + corr - upper) as usize * 2
         } else {
-            (1 + lower - corr) * 2
+            (1 + lower - corr) as usize * 2
         };
-        if corr == 0 || corr == CORRIDOR_SIZE - 1 {
+        if corr == 0 || (corr as usize) == CORRIDOR_SIZE - 1 {
             steps -= 1;
         }
             
@@ -406,14 +402,14 @@ impl State {
         let old_id = self.id;
 
         // Can move together these four lines into one or two
-        let old_pos = (ROOMS - (room + 1))*ROOMS_SIZE + (self.rooms[room].len() - 1);
-        self.id -= (moving + 1) * 10usize.pow(old_pos as u32);
+        let old_pos = (ROOMS - (room as usize + 1))*ROOMS_SIZE + (self.rooms[room as usize].len() - 1);
+        self.id -= (moving + 1) as usize * SHIFT.pow(old_pos as u32);
 
-        let new_pos = ROOMS*ROOMS_SIZE + (CORRIDOR_SIZE - (corr + 1));
-        self.id += (moving + 1) * 10usize.pow(new_pos as u32);
+        let new_pos = ROOMS*ROOMS_SIZE + (CORRIDOR_SIZE - (corr as usize + 1));
+        self.id += (moving + 1) as usize * SHIFT.pow(new_pos as u32);
 
-        self.corridor[corr] = self.rooms[room].pop();
-        assert!(self.corridor[corr].is_some());
+        self.corridor[corr as usize] = self.rooms[room as usize].pop();
+        assert!(self.corridor[corr as usize].is_some());
 
         if self.id != State::compute_id(&self.rooms, &self.corridor) {
             println!("WRONG UPDATE: Old: {}, new: {}, supposed new: {}, kind: {}, room: {}",
@@ -433,11 +429,10 @@ impl State {
         let mut moves = vec![];
 
         for room in (0..4).filter(|&i| !self.rooms[i].is_empty()) {
-            let (mut lower_corr, mut upper_corr) = adjacent_hallways(room);
-            while self.corridor[lower_corr].is_none() {
+            let (mut lower_corr, mut upper_corr) = adjacent_hallways(room as u8);
+            while self.corridor[lower_corr as usize].is_none() {
                 // Possible move to furter down in the corridor
-                let mut new_move = self.clone().do_move(room, lower_corr);
-                //new_move.0.history.push((new_move.0.clone(), new_move.1));  // TODO: remove
+                let new_move = self.clone().do_move(room as u8, lower_corr);
                 moves.push(new_move);
 
                 if lower_corr == 0 {
@@ -448,10 +443,9 @@ impl State {
                 }
             }
 
-            while upper_corr < CORRIDOR_SIZE && self.corridor[upper_corr].is_none() {
+            while upper_corr < CORRIDOR_SIZE as u8 && self.corridor[upper_corr as usize].is_none() {
                 // Possible move to furter up the corridor
-                let mut new_move = self.clone().do_move(room, upper_corr);
-                //new_move.0.history.push((new_move.0.clone(), new_move.1));  // TODO: remove
+                let new_move = self.clone().do_move(room as u8, upper_corr);
                 moves.push(new_move);
 
                 upper_corr += 1;
@@ -470,7 +464,6 @@ fn parse(path: &str) -> State {
 
     let mut rooms = [vec![], vec![], vec![], vec![]];
     for cap in reg.captures_iter(&input) {
-        println!("cap: {:?}", cap);
 
         for i in 0..4 {
             rooms[i].push(to_digit(&cap[i+1]));
@@ -482,7 +475,7 @@ fn parse(path: &str) -> State {
     }
 
     let id = State::compute_id(&rooms, &[None; 7]);
-    State {rooms, corridor: [None; 7], id, history: vec![]}
+    State {rooms, corridor: [None; 7], id}
 
 }
 
@@ -500,14 +493,6 @@ fn dijkstras(starting_board: State) -> u32 {
         if board.id == 0 {
             // Have found the quickest way to the final solution
 
-            println!("Optimal value: {}", value);
-            println!("Final solution: \n{}\n\nHISTORY:", board);
-
-            for (state, cost) in board.history.iter() {
-                println!("Cost: {}, State: \n{}", cost, state);
-            }
-
-            // ERROR: Now also add the cost of moving them all into the rooms! (From space just outside)'
             return value + (0..4)
                 .map(|kind| move_cost(kind) * ((ROOMS_SIZE+1)*ROOMS_SIZE/2) as u32)
                 .sum::<u32>();
@@ -541,16 +526,6 @@ fn main() {
     let start = Instant::now();
 
     let statring_board = parse("input.in");
-    /*println!("STARTING BOARD: \n{}\n", statring_board);
-    println!("STARTING DEBUG BOARD: \n{:?}", statring_board);
-
-    for (state, _cost) in statring_board.possible_moves() {
-        println!("---------------------------------\nPossible move from start with cost: {}\n{}\n", _cost, state);
-        for (inner_state, inner_cost) in state.possible_moves() {
-            println!("Possible inner move with cost: {}\n{}\n", _cost + inner_cost, inner_state);
-
-        }
-    }*/
 
     part1(statring_board.clone());
     
