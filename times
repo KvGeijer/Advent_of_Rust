@@ -20,8 +20,8 @@
 24
 4
 20
-?
-2       = 290 ms
-
+131                 // Code is a bit of a train wreck. But at least not solved by hand as others ;)
+2
+39      = 560 ms    // Can be much more efficient
 
 //Note: I take the lowest time from some runs, as it depends on how much resource the process is given.
