@@ -19,7 +19,9 @@
 9
 24
 4
-20      = 288 ms
+20
+?
+2       = 290 ms
 
 
 //Note: I take the lowest time from some runs, as it depends on how much resource the process is given.

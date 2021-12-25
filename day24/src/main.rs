@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::time::Instant;
 
 
 const PERIOD: usize = 18;
@@ -60,6 +61,7 @@ fn parse(path: &str) -> Vec<Instr> {
 }
 
 
+#[allow(dead_code)]
 fn spot_differences(instructions: &Vec<Instr>) {
     let mut differences: HashMap<usize, Vec<&Instr>> = HashMap::new();
     let mut last_instr: [Option<&Instr>; PERIOD] = [None; PERIOD];
@@ -164,20 +166,46 @@ fn part1(equations: &Vec<(usize, usize, i32)>) {
     }
 
     let serial = ws.iter().fold(0u64, |sum, &digit| sum*10 + digit as u64);
-    println!("The optimal serial is: {}", serial);
+    println!("The highest serial is: {}", serial);
 
 }
 
 
+fn part2(equations: &Vec<(usize, usize, i32)>) {
+    // Use the equations to maximize the w_i given 0 < w < 10
+    let mut ws = vec![0; equations.len()*2];
+
+    for &(old_ind, new_ind, diff) in equations.iter() {
+        // w_old = w_new + diff
+        let (w_old, w_new) = (1..=9)
+            .map(|w_old| (w_old, w_old - diff))
+            .filter(|&(_, w_new)| w_new > 0 && w_new <= 9)   // One is enough
+            .next()
+            .unwrap();
+
+        ws[old_ind] = w_old;
+        ws[new_ind] = w_new;
+    }
+
+    let serial = ws.iter().fold(0u64, |sum, &digit| sum*10 + digit as u64);
+    println!("The lowest serial is: {}", serial);
+
+}
+
 fn main() {
+    let start = Instant::now();
+
     let instructions = parse("input.in");
-    spot_differences(&instructions);
+    //spot_differences(&instructions);
 
     let blocks = parse_specialized(instructions);
 
     let equations = get_equations(&blocks);
-    print_equations(&equations);
+    //print_equations(&equations);
 
     part1(&equations);
+    part2(&equations);
 
+    let duration = start.elapsed();
+    println!("Time: {:?}", duration);
 }
