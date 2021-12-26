@@ -1,5 +1,5 @@
 # Advent_of_Rust
-Advent of code is an advent calendar with programming problems. This year I decided to do them all in Rust to get to know the language better. My goal was to write quite nicely st4ructured idiomatic code. Prefferably it should also be fast and it would be nice if the solutions to all days ran in under a second combined.
+Advent of code is an advent calendar with programming problems. This year I decided to do them all in Rust to get to know the language better. My goal was to write nicely structured idiomatic code. Prefferably it should also be fast and it would be nice if the solutions to all days ran in under a second combined.
 
 I managed to convince some friends to also do it in Rust. Then we could discuss design and every week met to discuss sulutions över some mulled wine and gingerbread cookies. You can check out the code of two of them here: 
 - Samuel: https://gitlab.com/samuelselleck/advent-of-code-rust/-/tree/master,
