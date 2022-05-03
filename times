@@ -22,6 +22,6 @@
 20
 131                 // Code is a bit of a train wreck. But at least not solved by hand as others ;)
 2
-39      = 560 ms    // Can be much more efficient
+39      = 460 ms    // Can be much more efficient
 
-//Note: I take the lowest time from some runs, as it depends on how much resource the process is given.
+//Note: I take the lowest time from some runs, as it depends on how much resources the process is given.
