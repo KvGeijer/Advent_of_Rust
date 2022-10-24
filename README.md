@@ -9,7 +9,7 @@ I managed to convince some friends to also do it in Rust. Then we could discuss 
 
 I just about had time to solve all puzzles during the intended days. The last days wre in my opinion a bit too hard considering you often want to spend those days with friends and family. 
 
-All in all the execution time took around 600 ms for all days combined which I count as a success. Some days (see day 23) were not idiomatic or pretty, but most of the solutions were quite nice. 
+All in all the execution time took a bit under 500 ms for all days combined which I count as a success! Some days (see day 23) were not idiomatic or pretty, but most of the solutions were quite nice. 
 
 # Thoughts on Rust
 
