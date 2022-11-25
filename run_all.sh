@@ -1,4 +1,4 @@
-for i in {1..20}
+for i in {1..25}
 	do
 		cd day$i
 		cargo run --release
